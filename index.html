@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REALLA.AI — AI Underwriting for Real Estate</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-dark: #0A0F0D;
+  --bg-dark-2: #111916;
+  --bg-light: #F6F5F0;
+  --bg-card: #FFFFFF;
+  --ink: #1A1A1A;
+  --ink-light: #6B6B6B;
+  --ink-muted: #9A9A9A;
+  --white: #FFFFFF;
+  --white-60: rgba(255,255,255,0.6);
+  --white-40: rgba(255,255,255,0.4);
+  --white-15: rgba(255,255,255,0.15);
+  --white-08: rgba(255,255,255,0.08);
+  --accent: #2D7A4F;
+  --accent-glow: #3DBA6F;
+  --accent-pale: #E8F0EB;
+  --gold: #C9A94E;
+  --gold-light: #E5D99B;
+  --border: #E5E2DB;
+  --border-dark: rgba(255,255,255,0.08);
+  --radius: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --shadow-card: 0 20px 60px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  color: var(--ink);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  background: var(--bg-dark);
+}
+
+/* Grain */
+.grain {
+  position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+  opacity: 0.3; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 128px;
+}
+
+/* Cursor glow */
+.cursor-glow {
+  position: fixed; width: 500px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(45,122,79,0.07) 0%, transparent 70%);
+  pointer-events: none; z-index: 1; transform: translate(-50%, -50%); transition: opacity 0.3s;
+}
+
+/* ==================== NAV ==================== */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  transition: all 0.4s cubic-bezier(0.22,1,0.36,1);
+}
+nav.scrolled {
+  background: rgba(10,15,13,0.92);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border-dark);
+}
+.nav-inner {
+  max-width: 1280px; margin: 0 auto; padding: 0 40px;
+  height: 68px; display: flex; align-items: center; justify-content: space-between;
+}
+.logo { font-weight: 700; font-size: 22px; letter-spacing: -0.5px; color: var(--white); text-decoration: none; }
+.logo span { color: var(--accent-glow); }
+.nav-links { display: flex; align-items: center; gap: 32px; }
+.nav-links a { font-size: 14px; font-weight: 500; color: var(--white-60); text-decoration: none; transition: color 0.2s; }
+.nav-links a:hover { color: var(--white); }
+.btn-nav {
+  background: var(--white); color: var(--bg-dark); padding: 9px 22px; border-radius: 10px;
+  font-size: 14px; font-weight: 600; text-decoration: none; transition: all 0.3s;
+}
+.btn-nav:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,255,255,0.12); }
+
+/* Freemium badge */
+.freemium-badge {
+  position: fixed; top: 16px; right: 16px; z-index: 200;
+  background: linear-gradient(135deg, var(--accent), var(--accent-glow));
+  color: #fff; font-size: 11px; font-weight: 800; letter-spacing: 1.2px;
+  text-transform: uppercase; padding: 6px 16px; border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(61,186,111,0.3);
+}
+
+/* ==================== HERO ==================== */
+.hero-dark {
+  position: relative; min-height: 100vh; overflow: hidden;
+  display: flex; align-items: center; padding: 100px 40px 60px;
+}
+.hero-bg { position: absolute; inset: 0; z-index: 0; }
+.hero-bg .orb { position: absolute; border-radius: 50%; filter: blur(120px); animation: orbFloat 20s ease-in-out infinite; }
+.hero-bg .orb-1 { width: 600px; height: 600px; background: rgba(45,122,79,0.12); top: -10%; right: 10%; }
+.hero-bg .orb-2 { width: 500px; height: 500px; background: rgba(201,169,78,0.06); bottom: -15%; left: -10%; animation-delay: -7s; }
+.hero-bg .orb-3 { width: 300px; height: 300px; background: rgba(61,186,111,0.08); top: 50%; left: 40%; animation-delay: -14s; }
+@keyframes orbFloat {
+  0%,100%{transform:translate(0,0) scale(1)} 25%{transform:translate(30px,-40px) scale(1.05)}
+  50%{transform:translate(-20px,20px) scale(0.95)} 75%{transform:translate(15px,35px) scale(1.02)}
+}
+.hero-grid {
+  position: absolute; inset: 0; z-index: 1;
+  background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 60% at 30% 50%, black 20%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 30% 50%, black 20%, transparent 100%);
+}
+
+.hero-inner {
+  position: relative; z-index: 2; max-width: 1280px; margin: 0 auto; width: 100%;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+}
+
+/* LEFT: search + controls */
+.hero-left { max-width: 580px; }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 12px; font-weight: 700; color: var(--accent-glow);
+  letter-spacing: 2px; text-transform: uppercase; margin-bottom: 24px;
+  opacity: 0; animation: heroFade 0.8s ease 0.2s forwards;
+}
+.hero-eyebrow::before { content: ''; width: 28px; height: 1px; background: var(--accent-glow); }
+.hero-left h1 {
+  font-family: 'Playfair Display', serif; font-size: clamp(36px, 4.5vw, 56px);
+  line-height: 1.1; letter-spacing: -1.5px; font-weight: 400; color: var(--white);
+  margin-bottom: 16px; opacity: 0; animation: heroFade 0.8s ease 0.3s forwards;
+}
+.hero-left h1 em {
+  font-style: italic;
+  background: linear-gradient(135deg, var(--accent-glow), var(--gold-light));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hero-cta-text {
+  font-size: 17px; color: var(--white-60); line-height: 1.6; margin-bottom: 32px;
+  max-width: 460px; opacity: 0; animation: heroFade 0.8s ease 0.4s forwards;
+}
+
+@keyframes heroFade { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+/* Search card */
+.search-card {
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--radius-xl); padding: 32px; backdrop-filter: blur(20px);
+  opacity: 0; animation: heroFade 0.8s ease 0.5s forwards;
+}
+.search-row { display: flex; gap: 10px; margin-bottom: 20px; }
+.search-input-wrap { flex: 1; position: relative; }
+.search-input-wrap svg {
+  position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--white-40);
+}
+.search-input {
+  width: 100%; padding: 15px 16px 15px 46px; font-size: 15px; font-family: 'DM Sans', sans-serif;
+  border: 1.5px solid rgba(255,255,255,0.12); border-radius: var(--radius); background: rgba(255,255,255,0.06);
+  color: var(--white); outline: none; transition: all 0.3s;
+}
+.search-input:focus { border-color: var(--accent-glow); box-shadow: 0 0 0 3px rgba(61,186,111,0.15); background: rgba(255,255,255,0.08); }
+.search-input::placeholder { color: var(--white-40); }
+.btn-search {
+  padding: 15px 28px; background: linear-gradient(135deg, #1a5c35, var(--accent));
+  color: #fff; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif; cursor: pointer; white-space: nowrap;
+  transition: all 0.3s; display: flex; align-items: center; gap: 8px;
+}
+.btn-search:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(45,122,79,0.35); }
+
+/* Filters grid */
+.filters-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
+}
+.filter-item { position: relative; }
+.filter-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px;
+  color: var(--white-40); margin-bottom: 5px; display: block;
+}
+.filter-select {
+  width: 100%; padding: 11px 32px 11px 12px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+  background: rgba(255,255,255,0.05); color: var(--white); cursor: pointer;
+  appearance: none; outline: none; transition: border-color 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='rgba(255,255,255,0.4)' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center;
+}
+.filter-select:focus { border-color: var(--accent-glow); }
+.filter-select option { background: #1a1a1a; color: #fff; }
+
+/* Dynamic fields */
+.dynamic-fields {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+  padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06);
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
+}
+.dynamic-fields.show {
+  max-height: 200px; opacity: 1; padding-top: 16px;
+}
+.dynamic-input {
+  width: 100%; padding: 10px 12px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+  background: rgba(255,255,255,0.05); color: var(--white); outline: none;
+  transition: border-color 0.2s;
+}
+.dynamic-input::placeholder { color: var(--white-40); font-size: 12px; }
+.dynamic-input:focus { border-color: var(--accent-glow); }
+
+/* Example address hint */
+.search-hint {
+  font-size: 12px; color: var(--white-40); margin-top: 8px; display: flex; align-items: center; gap: 6px;
+}
+.search-hint span { color: var(--white-60); font-weight: 500; cursor: pointer; transition: color 0.2s; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px; }
+.search-hint span:hover { color: var(--accent-glow); }
+
+/* RIGHT: Report preview */
+.hero-right {
+  display: flex; justify-content: center; align-items: center;
+  opacity: 0; animation: heroFade 1s ease 0.7s forwards;
+}
+.laptop-frame {
+  position: relative; width: 100%; max-width: 560px;
+}
+.laptop-screen {
+  background: #fff; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
+  position: relative;
+}
+.laptop-screen::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 32px;
+  background: #f0f0ed; border-bottom: 1px solid #e0ddd6;
+  border-radius: 12px 12px 0 0; z-index: 2;
+}
+.laptop-dots {
+  position: absolute; top: 10px; left: 14px; z-index: 3;
+  display: flex; gap: 6px;
+}
+.laptop-dots span { width: 10px; height: 10px; border-radius: 50%; }
+.laptop-dots span:nth-child(1) { background: #ff5f57; }
+.laptop-dots span:nth-child(2) { background: #ffbd2e; }
+.laptop-dots span:nth-child(3) { background: #28c940; }
+.laptop-url {
+  position: absolute; top: 7px; left: 50%; transform: translateX(-50%); z-index: 3;
+  background: rgba(0,0,0,0.04); border-radius: 6px; padding: 3px 20px;
+  font-size: 10px; color: #999; font-weight: 500;
+}
+
+/* Report mockup inside screen */
+.report-mock {
+  padding: 44px 20px 20px; background: #fafaf7; min-height: 400px;
+}
+.rm-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 14px; border-bottom: 1px solid #eee; margin-bottom: 16px;
+}
+.rm-logo { font-weight: 700; font-size: 14px; color: var(--accent); display: flex; align-items: center; gap: 6px; }
+.rm-logo .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 2px; }
+.rm-agent { font-size: 10px; color: #999; }
+.rm-address {
+  font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 500;
+  color: var(--ink); margin-bottom: 12px;
+}
+.rm-props {
+  display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.rm-prop {
+  background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 6px 10px;
+  font-size: 10px; color: var(--ink-light); display: flex; align-items: center; gap: 4px;
+}
+.rm-prop strong { color: var(--ink); font-weight: 600; }
+
+/* Valuation gauge */
+.rm-gauge-section { margin-bottom: 16px; }
+.rm-gauge-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-muted); margin-bottom: 10px; }
+.rm-gauge {
+  background: #fff; border: 1px solid #eee; border-radius: 12px; padding: 16px; text-align: center;
+}
+.gauge-bar {
+  height: 10px; border-radius: 5px; position: relative; margin: 0 auto 10px; width: 90%;
+  background: linear-gradient(90deg, #2D7A4F, #8BC34A, #FFC107, #FF9800, #f44336);
+}
+.gauge-needle {
+  position: absolute; top: -3px; left: 52%; width: 3px; height: 16px;
+  background: var(--ink); border-radius: 2px; transform: translateX(-50%);
+}
+.gauge-value {
+  font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 500;
+  color: var(--ink); margin-bottom: 2px;
+}
+.gauge-range { font-size: 10px; color: var(--ink-muted); display: flex; justify-content: space-between; }
+
+/* Highlights */
+.rm-highlights { margin-bottom: 16px; }
+.rm-hl-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-muted); margin-bottom: 8px; }
+.rm-proceed {
+  display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 10px;
+  font-weight: 700; background: #E8F5EC; color: #1a7a3a; margin-bottom: 8px;
+}
+.rm-hl-list { list-style: none; }
+.rm-hl-list li {
+  font-size: 11px; color: var(--ink-light); padding: 3px 0 3px 16px; position: relative;
+}
+.rm-hl-list li::before { content: '✓'; position: absolute; left: 0; color: var(--accent); font-weight: 700; font-size: 10px; }
+.rm-hl-warn {
+  font-size: 10px; color: #E65100; padding: 4px 0 0 0;
+  display: flex; align-items: center; gap: 4px;
+}
+
+/* Metrics grid */
+.rm-metrics {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.rm-metric {
+  background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 10px 12px;
+}
+.rm-metric .label { font-size: 9px; color: var(--ink-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.rm-metric .val { font-size: 16px; font-weight: 600; color: var(--ink); font-family: 'Playfair Display', serif; }
+
+.laptop-base {
+  height: 14px; background: linear-gradient(to bottom, #d4d4d0, #c0c0bc);
+  border-radius: 0 0 6px 6px; margin: 0 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.laptop-notch {
+  width: 80px; height: 4px; background: #b8b8b4; border-radius: 0 0 4px 4px;
+  margin: 0 auto; position: relative; top: -1px;
+}
+
+/* Trust numbers */
+.trust-bar {
+  display: flex; align-items: center; gap: 36px; margin-top: 48px;
+  padding-top: 32px; border-top: 1px solid var(--white-08);
+  opacity: 0; animation: heroFade 0.8s ease 0.7s forwards;
+}
+.trust-item { display: flex; flex-direction: column; }
+.trust-number {
+  font-family: 'Playfair Display', serif; font-size: 28px; color: var(--white);
+  font-weight: 500; letter-spacing: -1px;
+}
+.trust-label { font-size: 12px; color: var(--white-40); margin-top: 2px; }
+.trust-divider { width: 1px; height: 36px; background: var(--white-08); }
+
+/* ==================== REPORT SELECT SECTION ==================== */
+.report-section {
+  position: relative; z-index: 3;
+  max-width: 1280px; margin: 0 auto; padding: 0 40px 100px;
+}
+.report-section-inner {
+  opacity: 0; animation: heroFade 0.8s ease 0.9s forwards;
+}
+.report-section-title {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+  color: var(--white-40); margin-bottom: 20px; text-align: center;
+}
+.report-options {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+}
+.report-card {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-lg); padding: 28px 22px; cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.22,1,0.36,1); position: relative;
+}
+.report-card:hover { border-color: rgba(255,255,255,0.15); transform: translateY(-4px); }
+.report-card.selected {
+  border-color: var(--accent-glow); background: rgba(61,186,111,0.06);
+  box-shadow: 0 0 0 1px var(--accent-glow), 0 8px 32px rgba(61,186,111,0.1);
+}
+.report-radio {
+  width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.2);
+  border-radius: 50%; margin-bottom: 14px; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.report-card.selected .report-radio { border-color: var(--accent-glow); background: var(--accent-glow); }
+.report-card.selected .report-radio::after { content: ''; width: 6px; height: 6px; background: #fff; border-radius: 50%; }
+.report-card h4 { font-size: 15px; font-weight: 600; color: var(--white); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.report-card p { font-size: 12px; color: var(--white-40); line-height: 1.5; }
+.rtag {
+  display: inline-block; font-size: 9px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.8px; padding: 2px 7px; border-radius: 4px;
+}
+.rtag-free { background: rgba(61,186,111,0.15); color: var(--accent-glow); }
+.rtag-pro { background: rgba(201,169,78,0.15); color: var(--gold-light); }
+.rtag-new { background: rgba(255,100,100,0.15); color: #ff8a8a; }
+
+/* Share row under reports */
+.share-row {
+  display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 24px;
+}
+.share-pill {
+  display: flex; align-items: center; gap: 6px; padding: 10px 20px;
+  border: 1px solid rgba(255,255,255,0.1); border-radius: 100px;
+  background: rgba(255,255,255,0.03); color: var(--white-60);
+  font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+}
+.share-pill:hover { border-color: var(--accent-glow); color: var(--accent-glow); }
+.share-pill svg { width: 16px; height: 16px; }
+
+/* ==================== LIGHT SECTIONS ==================== */
+.light-wrapper { background: var(--bg-light); position: relative; }
+.light-wrapper::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 200px;
+  background: linear-gradient(to bottom, var(--bg-dark), var(--bg-light));
+  pointer-events: none;
+}
+section.light { max-width: 1280px; margin: 0 auto; padding: 0 40px; position: relative; z-index: 2; }
+.section-divider { width: 100%; max-width: 1280px; margin: 0 auto; height: 1px; background: var(--border); }
+
+/* Eyebrow / section headers */
+.sec-eyebrow {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;
+  color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+}
+.sec-eyebrow::before { content: ''; width: 24px; height: 1px; background: var(--accent); }
+.sec-eyebrow.center { justify-content: center; }
+.sec-eyebrow.center::after { content: ''; width: 24px; height: 1px; background: var(--accent); }
+.sec-h2 {
+  font-family: 'Playfair Display', serif; font-size: clamp(32px, 4vw, 50px);
+  font-weight: 400; letter-spacing: -1px; color: var(--ink); margin-bottom: 14px;
+}
+.sec-p { font-size: 17px; color: var(--ink-light); max-width: 480px; line-height: 1.7; }
+
+/* Features */
+.what-section { padding-top: 120px; padding-bottom: 120px; }
+.what-header { margin-bottom: 56px; }
+.features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.feature-card {
+  background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 36px 26px; transition: all 0.4s cubic-bezier(0.22,1,0.36,1); position: relative; overflow: hidden;
+}
+.feature-card::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--gold));
+  transform: scaleX(0); transform-origin: left; transition: transform 0.4s;
+}
+.feature-card:hover::after { transform: scaleX(1); }
+.feature-card:hover { transform: translateY(-8px); box-shadow: 0 20px 50px rgba(0,0,0,0.08); }
+.feature-icon {
+  width: 50px; height: 50px; background: linear-gradient(135deg, #E8F5EC, #f0faf3);
+  border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  margin-bottom: 22px; color: var(--accent);
+}
+.feature-num {
+  font-family: 'Playfair Display', serif; font-size: 48px; color: #f0f0ec;
+  position: absolute; top: 14px; right: 18px; font-weight: 500; line-height: 1;
+}
+.feature-card h4 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+.feature-card p { font-size: 14px; color: var(--ink-light); line-height: 1.65; }
+
+/* Who */
+.who-section { padding-top: 120px; padding-bottom: 120px; }
+.who-header { text-align: center; margin-bottom: 56px; }
+.who-header .sec-p { margin: 0 auto; }
+.who-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.who-card {
+  background: #fff; border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 34px 26px; transition: all 0.4s cubic-bezier(0.22,1,0.36,1);
+}
+.who-card:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.07); border-color: rgba(45,122,79,0.2); }
+.who-icon {
+  width: 48px; height: 48px; border-radius: 14px; display: flex;
+  align-items: center; justify-content: center; margin-bottom: 18px; font-size: 24px;
+}
+.who-card h4 { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+.who-card p { font-size: 14px; color: var(--ink-light); line-height: 1.65; }
+
+/* Social proof */
+.proof-section { padding: 80px 40px; max-width: 1280px; margin: 0 auto; }
+.proof-inner {
+  background: linear-gradient(135deg, #0f1a14, #162219); border-radius: var(--radius-xl);
+  padding: 60px; display: grid; grid-template-columns: 1fr 1.2fr; gap: 56px;
+  align-items: center; position: relative; overflow: hidden;
+}
+.proof-inner::after {
+  content: ''; position: absolute; top: -50%; right: -20%; width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(45,122,79,0.1) 0%, transparent 70%); filter: blur(60px);
+}
+.proof-quote { position: relative; z-index: 2; }
+.proof-quote .qm { font-family: 'Playfair Display', serif; font-size: 72px; color: var(--accent-glow); line-height: 1; opacity: 0.4; margin-bottom: -20px; }
+.proof-quote blockquote { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--white); line-height: 1.5; font-weight: 400; font-style: italic; margin-bottom: 20px; }
+.proof-author { color: var(--white-60); font-size: 14px; }
+.proof-author strong { color: var(--white); font-weight: 600; }
+.proof-stats { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.proof-stat {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+  border-radius: var(--radius-lg); padding: 24px 20px; text-align: center;
+}
+.proof-stat .num { font-family: 'Playfair Display', serif; font-size: 36px; color: var(--white); font-weight: 500; letter-spacing: -1px; }
+.proof-stat .label { font-size: 12px; color: var(--white-40); margin-top: 2px; }
+
+/* Pricing */
+.pricing-section { padding-top: 120px; padding-bottom: 120px; }
+.pricing-header { text-align: center; margin-bottom: 56px; }
+.pricing-header .sec-p { margin: 0 auto; }
+.pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 1020px; margin: 0 auto; }
+.pricing-card {
+  background: #fff; border: 1px solid var(--border); border-radius: var(--radius-xl);
+  padding: 42px 30px; position: relative; transition: all 0.4s;
+}
+.pricing-card:hover { box-shadow: 0 16px 48px rgba(0,0,0,0.08); }
+.pricing-card.featured {
+  border: 2px solid var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 20px 60px rgba(45,122,79,0.12);
+  transform: scale(1.02);
+}
+.pricing-card.featured:hover { transform: scale(1.04); }
+.pricing-card.featured::before {
+  content: 'Most Popular'; position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(135deg, #1a5c35, var(--accent)); color: #fff; font-size: 11px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 5px 18px;
+  border-radius: 100px; white-space: nowrap;
+}
+.pricing-card h4 { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+.pricing-card .price {
+  font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 500;
+  margin-bottom: 20px; letter-spacing: -1.5px;
+}
+.pricing-card .price span { font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--ink-muted); font-weight: 400; }
+.pricing-card ul { list-style: none; margin-bottom: 28px; }
+.pricing-card ul li {
+  font-size: 14px; color: var(--ink-light); padding: 7px 0 7px 24px; position: relative;
+}
+.pricing-card ul li::before {
+  content: ''; position: absolute; left: 0; top: 12px; width: 16px; height: 16px;
+  background: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.5 8.5L6.5 11.5L12.5 5.5' stroke='%232D7A4F' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat;
+}
+.btn-pricing {
+  display: block; width: 100%; padding: 14px; border-radius: 12px; font-size: 15px;
+  font-weight: 600; font-family: 'DM Sans', sans-serif; text-align: center;
+  cursor: pointer; transition: all 0.3s; border: 1.5px solid var(--border);
+  background: #fff; color: var(--ink); text-decoration: none;
+}
+.btn-pricing:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+.btn-pricing.primary { background: linear-gradient(135deg, #1a5c35, var(--accent)); color: #fff; border-color: transparent; }
+.btn-pricing.primary:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(45,122,79,0.3); }
+
+/* CTA */
+.cta-section { padding: 80px 40px 140px; max-width: 1280px; margin: 0 auto; }
+.cta-card {
+  background: var(--bg-dark); border-radius: var(--radius-xl); padding: 80px 48px;
+  text-align: center; color: #fff; position: relative; overflow: hidden;
+}
+.cta-card .orb { position: absolute; border-radius: 50%; filter: blur(100px); }
+.cta-card .orb-1 { width: 400px; height: 400px; background: rgba(45,122,79,0.15); top: -30%; left: -10%; }
+.cta-card .orb-2 { width: 300px; height: 300px; background: rgba(201,169,78,0.08); bottom: -20%; right: -5%; }
+.cta-card h2 {
+  font-family: 'Playfair Display', serif; font-size: clamp(28px, 3.5vw, 46px);
+  font-weight: 400; letter-spacing: -0.5px; margin-bottom: 14px; position: relative;
+}
+.cta-card h2 em {
+  font-style: italic;
+  background: linear-gradient(135deg, var(--accent-glow), var(--gold-light));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.cta-card p { font-size: 18px; color: var(--white-60); margin-bottom: 36px; position: relative; }
+.btn-cta {
+  display: inline-flex; align-items: center; gap: 10px; background: #fff; color: var(--bg-dark);
+  padding: 16px 36px; border-radius: 14px; font-size: 16px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif; text-decoration: none; transition: all 0.3s;
+  position: relative; border: none; cursor: pointer;
+}
+.btn-cta:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(255,255,255,0.15); }
+
+/* Footer */
+footer { background: var(--bg-dark); border-top: 1px solid var(--border-dark); padding: 48px 40px; }
+.footer-inner {
+  max-width: 1280px; margin: 0 auto; display: flex;
+  align-items: center; justify-content: space-between;
+}
+.footer-inner .logo { font-size: 18px; }
+.footer-links { display: flex; gap: 28px; }
+.footer-links a { font-size: 13px; color: var(--white-40); text-decoration: none; transition: color 0.2s; }
+.footer-links a:hover { color: var(--white); }
+.footer-copy { font-size: 13px; color: var(--white-40); }
+
+/* Reveal */
+.reveal { opacity: 0; transform: translateY(36px); transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1), transform 0.8s cubic-bezier(0.22,1,0.36,1); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 1100px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+  .hero-right { display: none; }
+  .hero-left { max-width: 100%; }
+  .report-options { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .features-grid { grid-template-columns: repeat(2, 1fr); }
+  .proof-inner { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .nav-links a:not(.btn-nav) { display: none; }
+  .freemium-badge { top: 12px; right: 12px; font-size: 10px; padding: 5px 12px; }
+  .hero-dark { padding: 100px 20px 40px; }
+  .filters-grid { grid-template-columns: 1fr; }
+  .dynamic-fields { grid-template-columns: 1fr 1fr; }
+  .report-section { padding: 0 20px 60px; }
+  .report-options { grid-template-columns: 1fr; }
+  .trust-bar { flex-wrap: wrap; gap: 20px; }
+  .trust-divider { display: none; }
+  section.light { padding-left: 20px; padding-right: 20px; }
+  .features-grid { grid-template-columns: 1fr; }
+  .who-grid { grid-template-columns: 1fr; }
+  .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
+  .pricing-card.featured { transform: none; }
+  .proof-section { padding: 60px 20px; }
+  .proof-inner { padding: 36px 24px; }
+  .cta-section { padding: 60px 20px 100px; }
+  .cta-card { padding: 48px 24px; }
+  .share-row { flex-wrap: wrap; }
+  .footer-inner { flex-direction: column; gap: 20px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="cursor-glow" id="cursorGlow"></div>
+<div class="freemium-badge">Freemium</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="#" class="logo">REALLA<span>.AI</span></a>
+    <div class="nav-links">
+      <a href="#what">Platform</a>
+      <a href="#who">Use Cases</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#" class="btn-nav">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ==================== HERO ==================== -->
+<section class="hero-dark">
+  <div class="hero-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="hero-grid"></div>
+
+  <div class="hero-inner">
+    <!-- LEFT -->
+    <div class="hero-left">
+      <div class="hero-eyebrow">Your AI Underwriting Assistant</div>
+      <h1>AI Underwriting for <em>Real Estate</em> Decisions</h1>
+      <p class="hero-cta-text">Enter a property address and get clear investment insights — in seconds.</p>
+
+      <!-- Search card -->
+      <div class="search-card">
+        <div class="search-row">
+          <div class="search-input-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" class="search-input" placeholder="Enter property address…" id="addressInput">
+          </div>
+          <button class="btn-search" id="btnSearch">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Analyze
+          </button>
+        </div>
+
+        <div class="search-hint">
+          Try: <span id="exampleAddr">530 Wickliffe Dr, Pasadena, CA 91104</span>
+        </div>
+
+        <div class="filters-grid" style="margin-top: 20px;">
+          <div class="filter-item">
+            <span class="filter-label">Property Type</span>
+            <select class="filter-select" id="propType">
+              <option value="">Select type…</option>
+              <option value="residential">Residential</option>
+              <option value="commercial">Commercial</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">Asset Class</span>
+            <select class="filter-select" id="assetClass">
+              <option value="">Select class…</option>
+              <option>Single Family</option>
+              <option>Multi-Family</option>
+              <option>Condo / Apartment</option>
+              <option>Townhouse</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">Purchase Purpose</span>
+            <select class="filter-select">
+              <option value="">Select purpose…</option>
+              <option>Owner-Occupied</option>
+              <option>Investment</option>
+              <option>Flip / Rehab</option>
+              <option>Development</option>
+            </select>
+          </div>
+          <div class="filter-item">
+            <span class="filter-label">Vacant?</span>
+            <select class="filter-select">
+              <option value="">Select…</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Dynamic fields for condos / apartments -->
+        <div class="dynamic-fields" id="dynamicFields">
+          <div>
+            <span class="filter-label">Floor</span>
+            <input type="text" class="dynamic-input" placeholder="e.g. 5">
+          </div>
+          <div>
+            <span class="filter-label">View</span>
+            <select class="filter-select">
+              <option>Select…</option>
+              <option>Street</option>
+              <option>Garden / Pool</option>
+              <option>City</option>
+              <option>Ocean / Water</option>
+            </select>
+          </div>
+          <div>
+            <span class="filter-label">Corner Unit?</span>
+            <select class="filter-select">
+              <option>Select…</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Scenario -->
+        <div style="margin-top: 16px;">
+          <span class="filter-label">Scenario</span>
+          <div style="display: flex; gap: 8px; margin-top: 6px;">
+            <button class="scenario-btn active" data-val="auto">Auto</button>
+            <button class="scenario-btn" data-val="conservative">Conservative</button>
+            <button class="scenario-btn" data-val="stress">Stress Test</button>
+          </div>
+        </div>
+      </div>
+
+      <style>
+        .scenario-btn {
+          flex: 1; padding: 9px 12px; font-size: 12px; font-weight: 600;
+          font-family: 'DM Sans', sans-serif; border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 10px; background: rgba(255,255,255,0.04); color: var(--white-60);
+          cursor: pointer; transition: all 0.2s;
+        }
+        .scenario-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--white); }
+        .scenario-btn.active {
+          border-color: var(--accent-glow); background: rgba(61,186,111,0.1); color: var(--accent-glow);
+        }
+      </style>
+
+      <!-- Trust -->
+      <div class="trust-bar">
+        <div class="trust-item">
+          <div class="trust-number" data-count="12400">0</div>
+          <div class="trust-label">Properties Analyzed</div>
+        </div>
+        <div class="trust-divider"></div>
+        <div class="trust-item">
+          <div class="trust-number" data-count="94" data-suffix="%">0</div>
+          <div class="trust-label">Accuracy Rate</div>
+        </div>
+        <div class="trust-divider"></div>
+        <div class="trust-item">
+          <div class="trust-number" data-count="850" data-suffix="+">0</div>
+          <div class="trust-label">Active Professionals</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Laptop with report preview -->
+    <div class="hero-right">
+      <div class="laptop-frame">
+        <div class="laptop-screen">
+          <div class="laptop-dots"><span></span><span></span><span></span></div>
+          <div class="laptop-url">realla.ai/report/530-wickliffe</div>
+          <div class="report-mock">
+            <div class="rm-header">
+              <div class="rm-logo"><div class="dot"></div> realla</div>
+              <div class="rm-agent">Jeff Johnson · Pasadena Realty Group</div>
+            </div>
+            <div class="rm-address">530 Wickliffe Dr, Pasadena, CA</div>
+            <div class="rm-props">
+              <div class="rm-prop"><strong>2</strong> bed</div>
+              <div class="rm-prop"><strong>1</strong> bath</div>
+              <div class="rm-prop"><strong>1,243</strong> sqft</div>
+              <div class="rm-prop">Built <strong>1926</strong></div>
+              <div class="rm-prop">SFH</div>
+            </div>
+
+            <div class="rm-gauge-section">
+              <div class="rm-gauge-title">Estimated Market Value</div>
+              <div class="rm-gauge">
+                <div class="gauge-bar"><div class="gauge-needle"></div></div>
+                <div class="gauge-value">$849K</div>
+                <div class="gauge-range">
+                  <span>Low $810K</span>
+                  <span>High $890K</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="rm-highlights">
+              <div class="rm-hl-title">Investment Highlights</div>
+              <div class="rm-proceed">PROCEED</div>
+              <ul class="rm-hl-list">
+                <li>Rent Income $4,100/month</li>
+                <li>Estimated 18% 5-Year Value Growth</li>
+                <li>4.6% Cap Rate, 6.4% Cash-on-Cash</li>
+              </ul>
+              <div class="rm-hl-warn">⚠ Insurance costs above average for area</div>
+            </div>
+
+            <div class="rm-metrics">
+              <div class="rm-metric"><div class="label">Rent Range</div><div class="val">$3,950–4,250</div></div>
+              <div class="rm-metric"><div class="label">NOI</div><div class="val">$32,150/yr</div></div>
+              <div class="rm-metric"><div class="label">Cap Rate</div><div class="val">4.6%</div></div>
+              <div class="rm-metric"><div class="label">Cash-on-Cash</div><div class="val">6.4%</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="laptop-base"><div class="laptop-notch"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== REPORT SELECT ==================== -->
+<div class="report-section">
+  <div class="report-section-inner">
+    <div class="report-section-title">Select Report Type</div>
+    <div class="report-options">
+      <div class="report-card selected" data-report="quick">
+        <div class="report-radio"></div>
+        <h4>Quick Overview <span class="rtag rtag-free">Free</span></h4>
+        <p>Fast property snapshot with basic valuation band. Perfect for quick client conversations.</p>
+      </div>
+      <div class="report-card" data-report="pro">
+        <div class="report-radio"></div>
+        <h4>Professional Report <span class="rtag rtag-pro">Pro</span></h4>
+        <p>Structured underwriting summary with comparables and rental yield analysis.</p>
+      </div>
+      <div class="report-card" data-report="advanced">
+        <div class="report-radio"></div>
+        <h4>Advanced Investment Report <span class="rtag rtag-pro">Pro</span></h4>
+        <p>Full risk & scenario modeling with localized risk factors and sensitivity analysis.</p>
+      </div>
+      <div class="report-card" data-report="visual">
+        <div class="report-radio"></div>
+        <h4>Visual Sales Pack <span class="rtag rtag-new">New</span></h4>
+        <p>Branded PDF with charts, valuation gauge & comparables map. Client-ready in seconds.</p>
+      </div>
+    </div>
+
+    <div class="share-row">
+      <div class="share-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download PDF
+      </div>
+      <div class="share-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        Share via Link
+      </div>
+      <div class="share-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Client-Ready Format
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== LIGHT SECTIONS ==================== -->
+<div class="light-wrapper">
+
+  <!-- WHAT -->
+  <section class="light what-section" id="what">
+    <div class="what-header reveal">
+      <div class="sec-eyebrow">Platform</div>
+      <h2 class="sec-h2">What Realla Does</h2>
+      <p class="sec-p">Institutional-grade underwriting, accessible to everyone. Powered by AI, backed by real data.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <span class="feature-num">01</span>
+        <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></div>
+        <h4>Market Valuation</h4>
+        <p>Estimates market value using live comparables and regional pricing signals.</p>
+      </div>
+      <div class="feature-card reveal">
+        <span class="feature-num">02</span>
+        <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <h4>Rental Yield</h4>
+        <p>Calculates rental income potential and cash-on-cash return projections.</p>
+      </div>
+      <div class="feature-card reveal">
+        <span class="feature-num">03</span>
+        <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+        <h4>Risk Factors</h4>
+        <p>Highlights location, market, and financial risks in one clear summary.</p>
+      </div>
+      <div class="feature-card reveal">
+        <span class="feature-num">04</span>
+        <div class="feature-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+        <h4>Investor-Ready Reports</h4>
+        <p>Creates professional summaries ready to share with clients and partners.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- WHO -->
+  <section class="light who-section" id="who">
+    <div class="who-header reveal">
+      <div class="sec-eyebrow center">Use Cases</div>
+      <h2 class="sec-h2" style="text-align:center">Who It's For</h2>
+      <p class="sec-p" style="text-align:center;margin:0 auto">Trusted by professionals who need fast, reliable underwriting they can stand behind.</p>
+    </div>
+    <div class="who-grid">
+      <div class="who-card reveal"><div class="who-icon" style="background:#E8F5EC">🏠</div><h4>Real Estate Agents & Brokerages</h4><p>Win listings with data-backed pricing. Send clients professional investment summaries in minutes.</p></div>
+      <div class="who-card reveal"><div class="who-icon" style="background:#FFF8E7">🏗️</div><h4>Developers</h4><p>Evaluate feasibility before raising capital. Get clear numbers to back every decision.</p></div>
+      <div class="who-card reveal"><div class="who-icon" style="background:#E8EFF5">🏦</div><h4>Mortgage & Lending Firms</h4><p>Pre-screen collateral risk instantly. Speed up loan approvals with automated analysis.</p></div>
+      <div class="who-card reveal"><div class="who-icon" style="background:#F0EBF5">🛡️</div><h4>Insurance Companies</h4><p>Validate exposure and asset value ranges with consistent, data-driven reports.</p></div>
+      <div class="who-card reveal"><div class="who-icon" style="background:#FFF0F0">📈</div><h4>Investment Firms & REITs</h4><p>Standardize underwriting across assets. Compare opportunities on equal footing.</p></div>
+      <div class="who-card reveal"><div class="who-icon" style="background:#F5F3E8">👤</div><h4>Individual Investors</h4><p>Make confident decisions backed by the same analysis institutional buyers use.</p></div>
+    </div>
+  </section>
+
+  <!-- PROOF -->
+  <div class="proof-section">
+    <div class="proof-inner reveal">
+      <div class="proof-quote">
+        <div class="qm">"</div>
+        <blockquote>Realla replaced 3 hours of manual underwriting with a 3-minute workflow. Our agents close faster and clients trust the numbers.</blockquote>
+        <div class="proof-author"><strong>Sarah Chen</strong> · Managing Director, Pacific Realty Group</div>
+      </div>
+      <div class="proof-stats">
+        <div class="proof-stat"><div class="num">87%</div><div class="label">Faster than manual</div></div>
+        <div class="proof-stat"><div class="num">2.4x</div><div class="label">More listings won</div></div>
+        <div class="proof-stat"><div class="num">$2.1B</div><div class="label">Assets analyzed</div></div>
+        <div class="proof-stat"><div class="num">4.9★</div><div class="label">User satisfaction</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- PRICING -->
+  <section class="light pricing-section" id="pricing">
+    <div class="pricing-header reveal">
+      <div class="sec-eyebrow center">Pricing</div>
+      <h2 class="sec-h2" style="text-align:center">Start Free, Scale When Ready</h2>
+      <p class="sec-p" style="text-align:center;margin:0 auto">No credit card required. Try Quick Overview reports today.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="pricing-card reveal">
+        <h4>Free</h4>
+        <div class="price">$0</div>
+        <ul>
+          <li>Quick Overview reports</li>
+          <li>Basic valuation band</li>
+          <li>Shareable summary link</li>
+          <li>5 reports per month</li>
+        </ul>
+        <a href="#" class="btn-pricing">Get Started Free</a>
+      </div>
+      <div class="pricing-card featured reveal">
+        <h4>Professional</h4>
+        <div class="price">$49 <span>/mo</span></div>
+        <ul>
+          <li>Everything in Free</li>
+          <li>Professional Reports</li>
+          <li>Visual Sales Pack PDF</li>
+          <li>Comparable analysis</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="#" class="btn-pricing primary">Start 14-Day Trial</a>
+      </div>
+      <div class="pricing-card reveal">
+        <h4>Enterprise</h4>
+        <div class="price">Custom</div>
+        <ul>
+          <li>Everything in Professional</li>
+          <li>Advanced Investment Reports</li>
+          <li>API access & integrations</li>
+          <li>Custom branding</li>
+          <li>Dedicated success manager</li>
+        </ul>
+        <a href="#" class="btn-pricing">Contact Sales</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="light cta-section">
+    <div class="cta-card reveal">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <h2>Ready to underwrite <em>smarter</em>?</h2>
+      <p>Try your first property analysis — it's completely free.</p>
+      <button class="btn-cta" onclick="document.getElementById('addressInput').focus();window.scrollTo({top:0,behavior:'smooth'})">
+        Analyze a Property
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </div>
+  </section>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <a href="#" class="logo">REALLA<span>.AI</span></a>
+    <div class="footer-links">
+      <a href="#">Platform</a><a href="#">Pricing</a><a href="#">Docs</a><a href="#">Privacy</a><a href="#">Terms</a>
+    </div>
+    <div class="footer-copy">&copy; 2026 Realla AI Inc.</div>
+  </div>
+</footer>
+
+<script>
+// Cursor glow
+const glow = document.getElementById('cursorGlow');
+let mx=0,my=0,gx=0,gy=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+(function aG(){gx+=(mx-gx)*0.08;gy+=(my-gy)*0.08;glow.style.left=gx+'px';glow.style.top=gy+'px';requestAnimationFrame(aG)})();
+
+// Glow visibility
+const heroEl=document.querySelector('.hero-dark');
+window.addEventListener('scroll',()=>{
+  glow.style.opacity=window.scrollY<heroEl.offsetHeight+400?'1':'0';
+  document.getElementById('nav').classList.toggle('scrolled',window.scrollY>20);
+});
+
+// Report cards
+document.querySelectorAll('.report-card').forEach(c=>{
+  c.addEventListener('click',()=>{
+    document.querySelectorAll('.report-card').forEach(x=>x.classList.remove('selected'));
+    c.classList.add('selected');
+  });
+});
+
+// Scenario buttons
+document.querySelectorAll('.scenario-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.scenario-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+  });
+});
+
+// Dynamic fields for Condo/Apartment
+const assetClass = document.getElementById('assetClass');
+const dynFields = document.getElementById('dynamicFields');
+assetClass.addEventListener('change', () => {
+  const val = assetClass.value;
+  if (val === 'Condo / Apartment') {
+    dynFields.classList.add('show');
+  } else {
+    dynFields.classList.remove('show');
+  }
+});
+
+// Asset class options change based on property type
+const propType = document.getElementById('propType');
+propType.addEventListener('change', () => {
+  const v = propType.value;
+  assetClass.innerHTML = '';
+  if (v === 'residential') {
+    ['Select class…','Single Family','Multi-Family','Condo / Apartment','Townhouse'].forEach(o=>{
+      assetClass.innerHTML += `<option>${o}</option>`;
+    });
+  } else if (v === 'commercial') {
+    ['Select class…','Office','Retail','Industrial','Mixed-Use','Hospitality'].forEach(o=>{
+      assetClass.innerHTML += `<option>${o}</option>`;
+    });
+  } else {
+    assetClass.innerHTML = '<option>Select class…</option>';
+  }
+  dynFields.classList.remove('show');
+});
+
+// Example address click
+document.getElementById('exampleAddr').addEventListener('click', () => {
+  document.getElementById('addressInput').value = '530 Wickliffe Dr, Pasadena, CA 91104';
+});
+
+// Rotating example addresses
+const examples = [
+  '530 Wickliffe Dr, Pasadena, CA 91104',
+  '1420 N Crescent Heights, West Hollywood, CA',
+  '88 Greenwich St, New York, NY 10006',
+  '4521 Collins Ave, Miami Beach, FL 33140',
+  '2200 Pacific Ave, San Francisco, CA 94115'
+];
+let exIdx = 0;
+setInterval(() => {
+  exIdx = (exIdx + 1) % examples.length;
+  const el = document.getElementById('exampleAddr');
+  el.style.opacity = '0';
+  setTimeout(() => { el.textContent = examples[exIdx]; el.style.opacity = '1'; }, 300);
+}, 4000);
+document.getElementById('exampleAddr').style.transition = 'opacity 0.3s';
+
+// Scroll reveal
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach((e,i) => {
+    if(e.isIntersecting){setTimeout(()=>e.target.classList.add('visible'),i*70);obs.unobserve(e.target)}
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// Counter animation
+function animCounters(){
+  document.querySelectorAll('.trust-number[data-count]').forEach(el=>{
+    const t=parseInt(el.dataset.count),s=el.dataset.suffix||'',d=2000,st=performance.now();
+    (function u(n){const p=Math.min((n-st)/d,1),e=1-Math.pow(1-p,3);
+      el.textContent=Math.round(e*t).toLocaleString()+s;
+      if(p<1)requestAnimationFrame(u);
+    })(st);
+  });
+}
+let cd=false;
+new IntersectionObserver(e=>{if(e[0].isIntersecting&&!cd){cd=true;setTimeout(animCounters,400)}}).observe(document.querySelector('.trust-bar'));
+
+// Search button
+document.getElementById('btnSearch').addEventListener('click',function(){
+  const b=this;b.innerHTML='Analyzing…';b.style.pointerEvents='none';
+  setTimeout(()=>{b.innerHTML='✓ Ready';b.style.background='linear-gradient(135deg,#0f6b2e,#1a9a42)';
+    setTimeout(()=>{b.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg> Analyze';b.style.background='';b.style.pointerEvents=''},2500)},2000);
+});
+</script>
+</body>
+</html>
